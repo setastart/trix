@@ -7,6 +7,7 @@ Trix.config.lang =
   captionPlaceholder: "Add a caption…"
   code: "Code"
   heading1: "Heading"
+  heading2: "Subheading"
   indent: "Increase Level"
   italic: "Italic"
   link: "Link"
