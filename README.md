@@ -11,7 +11,7 @@ The code is based on https://github.com/basecamp/trix/issues/202
 
 ## Notes
 
-- Since Trix 1.1.0, on Safari <kbd>shift + enter</kbd> stopped working and requires adding the following javascript code to your page:
+- Since Trix 1.1.0, on Safari <kbd>shift + enter</kbd> stopped working and behaves the same as a normal <kbd>enter</kbd>. One way to fix it is to add the following javascript to the web page:
 
 ```
 document.addEventListener('trix-before-initialize', function(ev) {
