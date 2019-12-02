@@ -18,8 +18,16 @@ insertStyleElementForTagName = (tagName) ->
   element = document.createElement("style")
   element.setAttribute("type", "text/css")
   element.setAttribute("data-tag-name", tagName.toLowerCase())
+  element.setAttribute("nonce", nonce) if nonce = getCSPNonce()
   document.head.insertBefore(element, document.head.firstChild)
   element
+
+getCSPNonce = ->
+  if element = getMetaElement("trix-csp-nonce") or getMetaElement("csp-nonce")
+    element.getAttribute("content")
+
+getMetaElement = (name) ->
+  document.head.querySelector("meta[name=#{name}]")
 
 rewriteFunctionsAsValues = (definition) ->
   object = {}

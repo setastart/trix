@@ -1,4 +1,4 @@
-{assert, clickToolbarButton, createFile, defer, expandSelection, moveCursor, pasteContent, pressKey, test, testIf, testGroup, triggerEvent, typeCharacters} = Trix.TestHelpers
+{after, assert, clickToolbarButton, createFile, defer, expandSelection, moveCursor, pasteContent, pressKey, test, testIf, testGroup, triggerEvent, typeCharacters} = Trix.TestHelpers
 
 testGroup "Pasting", template: "editor_empty", ->
   test "paste plain text", (expectDocument) ->
@@ -34,6 +34,24 @@ testGroup "Pasting", template: "editor_empty", ->
   test "paste html with CRLF ", (expectDocument) ->
     pasteContent "text/html", "<div>a<br></div>\r\n<div>b<br></div>\r\n<div>c<br></div>", ->
       expectDocument "a\nb\nc\n"
+
+  test "paste unsafe html", (done) ->
+    window.unsanitized = []
+    pasteData =
+      "text/plain": "x"
+      "text/html": """
+        <img onload="window.unsanitized.push('img.onload');" src="#{TEST_IMAGE_URL}">
+        <img onerror="window.unsanitized.push('img.onerror');" src="data:image/gif;base64,TOTALLYBOGUS">
+        <script>
+          window.unsanitized.push('script tag');
+        </script>
+      """
+
+    pasteContent pasteData, ->
+      after 20, ->
+        assert.deepEqual window.unsanitized, []
+        delete window.unsanitized
+        done()
 
   test "prefers plain text when html lacks formatting", (expectDocument) ->
     pasteData =
