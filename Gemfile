@@ -9,4 +9,3 @@ gem 'eco'
 gem 'sass'
 gem 'uglifier', '~> 3.2' # Note: Later versions don't seem to work
 gem 'blade', '~> 0.7.0'
-gem 'github_api', '~> 0.13.1'
