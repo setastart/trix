@@ -2,7 +2,8 @@
 
 This is a fork of Trix (https://github.com/basecamp/trix) that:
 - Uses `<p>` instead of `<div>` for default text blocks.
-- Adds a `H2` button to the toolbar (no graphics).
+- Adds `<small>` button (no graphics).
+- Adds `<h2>` button (no graphics).
 - Makes pressing <kbd>shift + enter</kbd> to insert a `<br>`.
 - Makes pressing <kbd>enter</kbd> to close current scope and add a new one (like a new paragraph).
 - Removes attachments from toolbar.
