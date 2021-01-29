@@ -16,6 +16,7 @@ Trix.config.lang =
   quote: "Quote"
   redo: "Redo"
   remove: "Remove"
+  small: "Small"
   strike: "Strikethrough"
   undo: "Undo"
   unlink: "Unlink"
