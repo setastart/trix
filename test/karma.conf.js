@@ -33,25 +33,25 @@ if (process.env.CI) {
       base: "SauceLabs",
       browserName: "chrome",
       platform: "Windows 10",
-      version: "76"
+      version: "latest"
     },
     sl_firefox_latest: {
       base: "SauceLabs",
       browserName: "firefox",
       platform: "Windows 10",
-      version: "68"
+      version: "latest"
     },
     sl_safari_previous: {
       base: "SauceLabs",
       browserName: "safari",
-      platform: "macOS 10.12",
-      version: "11.0"
+      platform: "macOS 10.13",
+      version: "latest-1"
     },
     sl_safari_latest: {
       base: "SauceLabs",
       browserName: "safari",
       platform: "macOS 10.13",
-      version: "12.1"
+      version: "latest"
     },
     sl_edge_previous: {
       base: "SauceLabs",
@@ -114,9 +114,9 @@ if (process.env.CI) {
   }
 
   function buildId() {
-    const { TRAVIS_BUILD_NUMBER, TRAVIS_BUILD_ID } = process.env
-    return TRAVIS_BUILD_NUMBER && TRAVIS_BUILD_ID
-      ? `TRAVIS #${TRAVIS_BUILD_NUMBER} (${TRAVIS_BUILD_ID})`
+    const { GITHUB_WORKFLOW, GITHUB_RUN_NUMBER, GITHUB_RUN_ID } = process.env
+    return GITHUB_WORKFLOW && GITHUB_RUN_NUMBER && GITHUB_RUN_ID
+      ? `${GITHUB_WORKFLOW} #${GITHUB_RUN_NUMBER} (${GITHUB_RUN_ID})`
       : ""
   }
 }

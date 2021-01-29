@@ -63,12 +63,13 @@ class Trix.HTMLParser extends Trix.BasicObject
 
   appendBlockForTextNode: (node) ->
     element = node.parentNode
-    return if element is @currentBlockElement
-    return unless @isBlockElement(element)
-    attributes = @getBlockAttributes(element)
-    unless arraysAreEqual(attributes, @currentBlock?.attributes)
-      @currentBlock = @appendBlockForAttributesWithElement(attributes, element)
-      @currentBlockElement = element
+    if element is @currentBlockElement and @isBlockElement(node.previousSibling)
+      @appendStringWithAttributes("\n")
+    else if element is @containerElement or @isBlockElement(element)
+      attributes = @getBlockAttributes(element)
+      unless arraysAreEqual(attributes, @currentBlock?.attributes)
+        @currentBlock = @appendBlockForAttributesWithElement(attributes, element)
+        @currentBlockElement = element
 
   appendBlockForElement: (element) ->
     elementIsBlockElement = @isBlockElement(element)
@@ -77,9 +78,12 @@ class Trix.HTMLParser extends Trix.BasicObject
     if elementIsBlockElement and not @isBlockElement(element.firstChild)
       unless @isInsignificantTextNode(element.firstChild) and @isBlockElement(element.firstElementChild)
         attributes = @getBlockAttributes(element)
-        unless currentBlockContainsElement and arraysAreEqual(attributes, @currentBlock.attributes)
-          @currentBlock = @appendBlockForAttributesWithElement(attributes, element)
-          @currentBlockElement = element
+        if element.firstChild
+          if not (currentBlockContainsElement and arraysAreEqual(attributes, @currentBlock.attributes))
+            @currentBlock = @appendBlockForAttributesWithElement(attributes, element)
+            @currentBlockElement = element
+          else
+            @appendStringWithAttributes("\n")
 
     else if @currentBlockElement and not currentBlockContainsElement and not elementIsBlockElement
       if parentBlockElement = @findParentBlockElement(element)
@@ -107,7 +111,7 @@ class Trix.HTMLParser extends Trix.BasicObject
 
   processElement: (element) ->
     if nodeIsAttachmentElement(element)
-      attributes = getAttachmentAttributes(element)
+      attributes = parseTrixDataAttribute(element, "attachment")
       if Object.keys(attributes).length
         textAttributes = @getTextAttributes(element)
         @appendAttachmentWithAttributes(attributes, textAttributes)
@@ -208,9 +212,8 @@ class Trix.HTMLParser extends Trix.BasicObject
           attributes[attribute] = value
 
     if nodeIsAttachmentElement(element)
-      if json = element.getAttribute("data-trix-attributes")
-        for key, value of JSON.parse(json)
-          attributes[key] = value
+      for key, value of parseTrixDataAttribute(element, "attributes")
+        attributes[key] = value
 
     attributes
 
@@ -233,8 +236,11 @@ class Trix.HTMLParser extends Trix.BasicObject
       element = element.parentNode
     ancestors
 
-  getAttachmentAttributes = (element) ->
-    JSON.parse(element.getAttribute("data-trix-attachment"))
+  parseTrixDataAttribute = (element, name) ->
+    try
+     JSON.parse(element.getAttribute("data-trix-#{name}"))
+    catch
+      {}
 
   getImageDimensions = (element) ->
     width = element.getAttribute("width")

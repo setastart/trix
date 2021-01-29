@@ -146,6 +146,7 @@ class Trix.EditorController extends Trix.Controller
     @renderedCompositionRevision = @composition.revision
 
   compositionControllerDidFocus: ->
+    @setLocationRange(index: 0, offset: 0) if @isFocusedInvisibly()
     @toolbarController.hideDialog()
     @notifyEditorElement("focus")
 
@@ -153,6 +154,7 @@ class Trix.EditorController extends Trix.Controller
     @notifyEditorElement("blur")
 
   compositionControllerDidSelectAttachment: (attachment, options) ->
+    @toolbarController.hideDialog()
     @composition.editAttachment(attachment, options)
 
   compositionControllerDidRequestDeselectingAttachment: (attachment) ->
@@ -413,3 +415,8 @@ class Trix.EditorController extends Trix.Controller
 
   isFocused: ->
     @editorElement is @editorElement.ownerDocument?.activeElement
+
+  # Detect "Cursor disappears sporadically" Firefox bug.
+  # - https://bugzilla.mozilla.org/show_bug.cgi?id=226301
+  isFocusedInvisibly: ->
+    @isFocused() and not @getLocationRange()

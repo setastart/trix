@@ -1,7 +1,7 @@
 #= require trix/elements/trix_toolbar_element
 #= require trix/controllers/editor_controller
 
-{browser, makeElement, triggerEvent, handleEvent, handleEventOnce} = Trix
+{browser, makeElement, triggerEvent, handleEvent, handleEventOnce, findClosestElementFromNode} = Trix
 
 {attachmentSelector} = Trix.AttachmentView
 
@@ -20,10 +20,6 @@ Trix.registerElement "trix-editor", do ->
     element.setAttribute("contenteditable", "")
     handleEventOnce("focus", onElement: element, withCallback: -> configureContentEditable(element))
 
-  addAccessibilityRole = (element) ->
-    return if element.hasAttribute("role")
-    element.setAttribute("role", "textbox")
-
   configureContentEditable = (element) ->
     disableObjectResizing(element)
     setDefaultParagraphSeparator(element)
@@ -38,6 +34,22 @@ Trix.registerElement "trix-editor", do ->
       {tagName} = Trix.config.blockAttributes.default
       if tagName in ["div", "p"]
         document.execCommand("DefaultParagraphSeparator", false, tagName)
+
+  # Accessibility helpers
+
+  addAccessibilityRole = (element) ->
+    return if element.hasAttribute("role")
+    element.setAttribute("role", "textbox")
+
+  ensureAriaLabel = (element) ->
+    return if element.hasAttribute("aria-label") or element.hasAttribute("aria-labelledby")
+    do update = ->
+      texts = (label.textContent for label in element.labels when not label.contains(element))
+      if text = texts.join(" ")
+        element.setAttribute("aria-label", text)
+      else
+        element.removeAttribute("aria-label")
+    handleEvent("focus", onElement: element, withCallback: update)
 
   # Style
 
@@ -58,6 +70,7 @@ Trix.registerElement "trix-editor", do ->
       content: attr(placeholder);
       color: graytext;
       cursor: text;
+      pointer-events: none;
     }
 
     %t a[contenteditable=false] {
@@ -113,6 +126,15 @@ Trix.registerElement "trix-editor", do ->
         @setAttribute("trix-id", ++id)
         @trixId
 
+  labels:
+    get: ->
+      labels = []
+      if @id and @ownerDocument
+        labels.push(@ownerDocument.querySelectorAll("label[for='#{@id}']")...)
+      if label = findClosestElementFromNode(this, matchingSelector: "label")
+        labels.push(label) if label.control in [this, null]
+      labels
+
   toolbarElement:
     get: ->
       if @hasAttribute("toolbar")
@@ -161,8 +183,10 @@ Trix.registerElement "trix-editor", do ->
   # Element lifecycle
 
   initialize: ->
-    makeEditable(this)
-    addAccessibilityRole(this)
+    unless @hasAttribute("data-trix-internal")
+      makeEditable(this)
+      addAccessibilityRole(this)
+      ensureAriaLabel(this)
 
   connect: ->
     unless @hasAttribute("data-trix-internal")
@@ -172,13 +196,15 @@ Trix.registerElement "trix-editor", do ->
         requestAnimationFrame => triggerEvent("trix-initialize", onElement: this)
       @editorController.registerSelectionManager()
       @registerResetListener()
+      @registerClickListener()
       autofocus(this)
 
   disconnect: ->
     @editorController?.unregisterSelectionManager()
     @unregisterResetListener()
+    @unregisterClickListener()
 
-  # Form reset support
+  # Form support
 
   registerResetListener: ->
     @resetListener = @resetBubbled.bind(this)
@@ -187,9 +213,24 @@ Trix.registerElement "trix-editor", do ->
   unregisterResetListener: ->
     window.removeEventListener("reset", @resetListener, false)
 
+  registerClickListener: ->
+    @clickListener = @clickBubbled.bind(this)
+    window.addEventListener("click", @clickListener, false)
+
+  unregisterClickListener: ->
+    window.removeEventListener("click", @clickListener, false)
+
   resetBubbled: (event) ->
-    if event.target is @inputElement?.form
-      @reset() unless event.defaultPrevented
+    return if event.defaultPrevented
+    return unless event.target is @inputElement?.form
+    @reset()
+
+  clickBubbled: (event) ->
+    return if event.defaultPrevented
+    return if @contains(event.target)
+    return unless label = findClosestElementFromNode(event.target, matchingSelector: "label")
+    return unless label in @labels
+    @focus()
 
   reset: ->
     @value = @defaultValue

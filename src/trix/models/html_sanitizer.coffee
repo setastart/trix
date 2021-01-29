@@ -2,14 +2,18 @@
 
 class Trix.HTMLSanitizer extends Trix.BasicObject
   DEFAULT_ALLOWED_ATTRIBUTES = "style href src width height class".split(" ")
+  DEFAULT_FORBIDDEN_PROTOCOLS = "javascript:".split(" ")
+  DEFAULT_FORBIDDEN_ELEMENTS = "script iframe".split(" ")
 
   @sanitize: (html, options) ->
     sanitizer = new this html, options
     sanitizer.sanitize()
     sanitizer
 
-  constructor: (html, {@allowedAttributes} = {}) ->
+  constructor: (html, {@allowedAttributes, @forbiddenProtocols, @forbiddenElements} = {}) ->
     @allowedAttributes ?= DEFAULT_ALLOWED_ATTRIBUTES
+    @forbiddenProtocols ?= DEFAULT_FORBIDDEN_PROTOCOLS
+    @forbiddenElements ?= DEFAULT_FORBIDDEN_ELEMENTS
     @body = createBodyElementForHTML(html)
 
   sanitize: ->
@@ -32,7 +36,7 @@ class Trix.HTMLSanitizer extends Trix.BasicObject
       node = walker.currentNode
       switch node.nodeType
         when Node.ELEMENT_NODE
-          if elementIsRemovable(node)
+          if @elementIsRemovable(node)
             nodesToRemove.push(node)
           else
             @sanitizeElement(node)
@@ -44,9 +48,14 @@ class Trix.HTMLSanitizer extends Trix.BasicObject
     @body
 
   sanitizeElement: (element) ->
+    if element.hasAttribute("href")
+      if element.protocol in @forbiddenProtocols
+        element.removeAttribute("href")
+
     for {name} in [element.attributes...]
       unless name in @allowedAttributes or name.indexOf("data-trix") is 0
         element.removeAttribute(name)
+
     element
 
   normalizeListElementNesting: ->
@@ -56,10 +65,15 @@ class Trix.HTMLSanitizer extends Trix.BasicObject
           previousElement.appendChild(listElement)
     @body
 
-  elementIsRemovable = (element) ->
+  elementIsRemovable: (element) ->
     return unless element?.nodeType is Node.ELEMENT_NODE
-    return if nodeIsAttachmentElement(element)
-    tagName(element) is "script" or element.getAttribute("data-trix-serialize") is "false"
+    @elementIsForbidden(element) or @elementIsntSerializable(element)
+
+  elementIsForbidden: (element) ->
+    tagName(element) in @forbiddenElements
+
+  elementIsntSerializable: (element) ->
+    element.getAttribute("data-trix-serialize") is "false" and not nodeIsAttachmentElement(element)
 
   createBodyElementForHTML = (html = "") ->
     # Remove everything after </html>
