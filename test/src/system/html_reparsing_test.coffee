@@ -20,5 +20,5 @@ testGroup "HTML Reparsing", template: "editor_empty", ->
       requestAnimationFrame ->
         assert.textAttributes([0, 1], bold: true)
         assert.textAttributes([2, 3], bold: true)
-        assert.equal(element.value, "<div><strong>b</strong> <strong>b</strong></div>")
+        assert.equal(element.value, "<p><strong>b</strong> <strong>b</strong></p>")
         expectDocument("b b\n")

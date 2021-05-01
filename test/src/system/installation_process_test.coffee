@@ -12,7 +12,7 @@ testGroup "Installation process", template: "editor_html", ->
 
   test "sets value property", (done) ->
     defer ->
-      assert.equal getEditorElement().value, "<div>Hello world</div>"
+      assert.equal getEditorElement().value, "<p>Hello world</p>"
       done()
 
 
@@ -39,7 +39,7 @@ testGroup "Installation process with specified elements", template: "editor_with
     editorElement = getEditorElement()
     assert.equal editorElement.toolbarElement, document.getElementById("my_toolbar")
     assert.equal editorElement.inputElement, document.getElementById("my_input")
-    assert.equal editorElement.value, "<div>Hello world</div>"
+    assert.equal editorElement.value, "<p>Hello world</p>"
     done()
 
   test "can be cloned", (done) ->
@@ -54,5 +54,5 @@ testGroup "Installation process with specified elements", template: "editor_with
       editorElement = getEditorElement()
       assert.equal editorElement.toolbarElement, document.getElementById("my_toolbar")
       assert.equal editorElement.inputElement, document.getElementById("my_input")
-      assert.equal editorElement.value, "<div>Hello world</div>"
+      assert.equal editorElement.value, "<p>Hello world</p>"
       done()
