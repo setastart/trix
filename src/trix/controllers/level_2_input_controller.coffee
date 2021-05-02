@@ -296,15 +296,6 @@ class Trix.Level2InputController extends Trix.InputController
         @afterRender = =>
           @delegate?.inputControllerDidPaste(paste)
 
-#      else if dataTransfer.files?.length
-#        paste.type = "File"
-#        paste.file = dataTransfer.files[0]
-#        @delegate?.inputControllerWillPaste(paste)
-#        @withTargetDOMRange ->
-#          @responder?.insertFile(paste.file)
-#        @afterRender = =>
-#          @delegate?.inputControllerDidPaste(paste)
-
     insertFromYank: ->
       @insertString(@event.data)
 
@@ -395,9 +386,6 @@ class Trix.Level2InputController extends Trix.InputController
     finally
       @event = null
     result
-
-#  dragEventHasFiles = (event) ->
-#    "Files" in (event.dataTransfer?.types ? [])
 
   pasteEventHasFilesOnly = (event) ->
     if clipboard = event.clipboardData

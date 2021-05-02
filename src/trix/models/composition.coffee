@@ -105,9 +105,6 @@ class Trix.Composition extends Trix.BasicObject
     @setDocument(document)
     @setSelection(selectedRange)
 
-  insertFile: (file) ->
-    @insertFiles([file])
-
   shouldManageDeletingInDirection: (direction) ->
     locationRange = @getLocationRange()
     if rangeIsCollapsed(locationRange)

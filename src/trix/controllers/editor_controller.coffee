@@ -59,9 +59,6 @@ class Trix.EditorController extends Trix.Controller
   compositionDidPerformInsertionAtRange: (range) ->
     @pastedRange = range if @pasting
 
-  compositionShouldAcceptFile: (file) ->
-    @notifyEditorElement("file-accept", {file})
-
   compositionDidRequestChangingSelectionToLocationRange: (locationRange) ->
     return if @loadingSnapshot and not @isFocused()
     @requestedLocationRange = locationRange

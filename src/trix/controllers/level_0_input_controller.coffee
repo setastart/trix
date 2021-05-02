@@ -6,7 +6,6 @@
 {keyNames} = Trix.config
 
 class Trix.Level0InputController extends Trix.InputController
-  pastedFileCount = 0
 
   constructor: ->
     super
@@ -357,9 +356,6 @@ class Trix.Level0InputController extends Trix.InputController
   @proxyMethod "responder?.expandSelectionInDirection"
   @proxyMethod "responder?.selectionIsInCursorTarget"
   @proxyMethod "responder?.selectionIsExpanded"
-
-extensionForFile = (file) ->
-  file.type?.match(/\/(\w+)$/)?[1]
 
 hasStringCodePointAt = " ".codePointAt?(0)?
 
