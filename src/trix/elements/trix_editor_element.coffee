@@ -3,8 +3,6 @@
 
 {browser, makeElement, triggerEvent, handleEvent, handleEventOnce, findClosestElementFromNode} = Trix
 
-{attachmentSelector} = Trix.AttachmentView
-
 Trix.registerElement "trix-editor", do ->
   id = 0
 
@@ -80,21 +78,6 @@ Trix.registerElement "trix-editor", do ->
     %t img {
       max-width: 100%;
       height: auto;
-    }
-
-    %t #{attachmentSelector} figcaption textarea {
-      resize: none;
-    }
-
-    %t #{attachmentSelector} figcaption textarea.trix-autoresize-clone {
-      position: absolute;
-      left: -9999px;
-      max-height: 0px;
-    }
-
-    %t #{attachmentSelector} figcaption[data-trix-placeholder]:empty::before {
-      content: attr(data-trix-placeholder);
-      color: graytext;
     }
 
     %t [data-trix-cursor-target] {

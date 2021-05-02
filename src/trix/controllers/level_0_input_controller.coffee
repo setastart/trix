@@ -146,30 +146,6 @@ class Trix.Level0InputController extends Trix.InputController
       @draggedRange = null
       @draggingPoint = null
 
-#    drop: (event) ->
-#      event.preventDefault()
-#      files = event.dataTransfer?.files
-#
-#      point = x: event.clientX, y: event.clientY
-#      @responder?.setLocationRangeFromPointRange(point)
-#
-#      if files?.length
-#        @attachFiles(files)
-#
-#      else if @draggedRange
-#        @delegate?.inputControllerWillMoveText()
-#        @responder?.moveTextFromRange(@draggedRange)
-#        @draggedRange = null
-#        @requestRender()
-#
-#      else if documentJSON = event.dataTransfer.getData("application/x-trix-document")
-#        document = Trix.Document.fromJSONString(documentJSON)
-#        @responder?.insertDocument(document)
-#        @requestRender()
-#
-#      @draggedRange = null
-#      @draggingPoint = null
-
     cut: (event) ->
       if @responder?.selectionIsExpanded()
         if @serializeSelectionToDataTransfer(event.clipboardData)
@@ -227,17 +203,6 @@ class Trix.Level0InputController extends Trix.InputController
         @responder?.insertHTML(paste.html)
         @requestRender()
         @delegate?.inputControllerDidPaste(paste)
-
-#      else if "Files" in clipboard.types
-#        if file = clipboard.items?[0]?.getAsFile?()
-#          if not file.name and extension = extensionForFile(file)
-#            file.name = "pasted-file-#{++pastedFileCount}.#{extension}"
-#          paste.type = "File"
-#          paste.file = file
-#          @delegate?.inputControllerWillAttachFiles()
-#          @responder?.insertFile(paste.file)
-#          @requestRender()
-#          @delegate?.inputControllerDidPaste(paste)
 
       event.preventDefault()
 
