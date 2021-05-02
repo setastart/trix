@@ -1,7 +1,7 @@
 {tagName, walkTree} = Trix
 
 class Trix.HTMLSanitizer extends Trix.BasicObject
-  DEFAULT_ALLOWED_ATTRIBUTES = "href".split(" ")
+  DEFAULT_ALLOWED_ATTRIBUTES = "style href class".split(" ")
   DEFAULT_FORBIDDEN_PROTOCOLS = "javascript:".split(" ")
   DEFAULT_FORBIDDEN_ELEMENTS = "script iframe".split(" ")
 
