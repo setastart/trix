@@ -27,13 +27,13 @@ class Trix.InputController extends Trix.BasicObject
     @delegate?.inputControllerDidRequestReparse?()
     @requestRender()
 
-  attachFiles: (files) ->
-    operations = (new Trix.FileVerificationOperation(file) for file in files)
-    Promise.all(operations).then (files) =>
-      @handleInput ->
-        @delegate?.inputControllerWillAttachFiles()
-        @responder?.insertFiles(files)
-        @requestRender()
+#  attachFiles: (files) ->
+#    operations = (new Trix.FileVerificationOperation(file) for file in files)
+#    Promise.all(operations).then (files) =>
+#      @handleInput ->
+#        @delegate?.inputControllerWillAttachFiles()
+#        @responder?.insertFiles(files)
+#        @requestRender()
 
   # Private
 

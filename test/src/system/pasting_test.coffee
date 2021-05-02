@@ -256,7 +256,7 @@ testGroup "Pasting", template: "editor_empty", ->
   test "paste file", (expectDocument) ->
     typeCharacters "a", ->
       pasteContent "Files", (createFile()), ->
-        expectDocument "a#{Trix.OBJECT_REPLACEMENT_CHARACTER}\n"
+        expectDocument "a\n"
 
   testIf Trix.config.input.getLevel() is 0, "paste event with no clipboardData", (expectDocument) ->
     typeCharacters "a", ->
