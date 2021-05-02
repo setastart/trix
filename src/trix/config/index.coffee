@@ -1,5 +1,4 @@
 #= require trix/config/lang
-#= require trix/config/css
 #= require trix/config/block_attributes
 #= require trix/config/file_size_formatting
 #= require trix/config/text_attributes
