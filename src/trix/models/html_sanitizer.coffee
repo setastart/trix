@@ -1,4 +1,4 @@
-{tagName, walkTree, nodeIsAttachmentElement} = Trix
+{tagName, walkTree} = Trix
 
 class Trix.HTMLSanitizer extends Trix.BasicObject
   DEFAULT_ALLOWED_ATTRIBUTES = "style href src width height class".split(" ")
@@ -73,7 +73,7 @@ class Trix.HTMLSanitizer extends Trix.BasicObject
     tagName(element) in @forbiddenElements
 
   elementIsntSerializable: (element) ->
-    element.getAttribute("data-trix-serialize") is "false" and not nodeIsAttachmentElement(element)
+    element.getAttribute("data-trix-serialize") is "false"
 
   createBodyElementForHTML = (html = "") ->
     # Remove everything after </html>
