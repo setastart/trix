@@ -192,29 +192,6 @@ testGroup "Trix.HTMLParser", ->
     expectedHTML = """<p><!--block-->a b c</p>"""
     assert.documentHTMLEqual Trix.HTMLParser.parse(html).getDocument(), expectedHTML
 
-#  test "ignores attachment elements with malformed JSON", ->
-#    html = """
-#    <p>a</p>\
-#    <p data-trix-attachment data-trix-attributes></p>\
-#    <p data-trix-attachment="" data-trix-attributes=""></p>\
-#    <p data-trix-attachment="{&quot;x:}" data-trix-attributes="{&quot;x:}"></p>\
-#    <p>b</p>
-#    """
-#    expectedHTML = """<p><!--block-->a</p><p><!--block--><br></p><p><!--block-->b</p>"""
-#    assert.documentHTMLEqual Trix.HTMLParser.parse(html).getDocument(), expectedHTML
-#
-#  test "parses attachment caption from large html string", (done) ->
-#    html = fixtures["image attachment with edited caption"].html
-#
-#    for i in [1..30]
-#      html += fixtures["image attachment"].html
-#
-#    for n in [1..3]
-#      attachmentPiece = Trix.HTMLParser.parse(html).getDocument().getAttachmentPieces()[0]
-#      assert.equal attachmentPiece.getCaption(), "Example"
-#
-#    done()
-
   test "parses foreground color when configured", ->
     config =
       foregroundColor: styleProperty: "color"

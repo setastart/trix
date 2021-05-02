@@ -14,8 +14,7 @@ Trix.config.textAttributes =
   href:
     groupTagName: "a"
     parser: (element) ->
-      {attachmentSelector} = Trix.AttachmentView
-      matchingSelector = "a:not(#{attachmentSelector})"
+      matchingSelector = "a"
       if link = Trix.findClosestElementFromNode(element, {matchingSelector})
         link.getAttribute("href")
   strike:

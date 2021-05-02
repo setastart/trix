@@ -1,6 +1,3 @@
-#= require trix/views/attachment_view
-#= require trix/views/previewable_attachment_view
-
 {makeElement, findInnerElement, getTextConfig} = Trix
 
 class Trix.PieceView extends Trix.ObjectView
@@ -10,31 +7,16 @@ class Trix.PieceView extends Trix.ObjectView
     @attributes = @piece.getAttributes()
     {@textConfig, @context} = @options
 
-    if @piece.attachment
-      @attachment = @piece.attachment
-    else
-      @string = @piece.toString()
+    @string = @piece.toString()
 
   createNodes: ->
-    nodes = if @attachment
-      @createAttachmentNodes()
-    else
-      @createStringNodes()
+    nodes = @createStringNodes()
 
     if element = @createElement()
       innerElement = findInnerElement(element)
       innerElement.appendChild(node) for node in nodes
       nodes = [element]
     nodes
-
-  createAttachmentNodes: ->
-    constructor = if @attachment.isPreviewable()
-      Trix.PreviewableAttachmentView
-    else
-      Trix.AttachmentView
-
-    view = @createChildView(constructor, @piece.attachment, {@piece})
-    view.getNodes()
 
   createStringNodes: ->
     if @textConfig?.plaintext

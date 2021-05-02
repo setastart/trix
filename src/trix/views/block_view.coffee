@@ -36,11 +36,7 @@ class Trix.BlockView extends Trix.ObjectView
     {tagName} = getBlockConfig(attributeName)
     attributes = dir: "rtl" if depth is 0 and @block.isRTL()
 
-    if attributeName is "attachmentGallery"
-      size = @block.getBlockBreakPosition()
-      className = "#{css.attachmentGallery} #{css.attachmentGallery}--#{size}"
-
-    makeElement({tagName, className, attributes})
+    makeElement({tagName, "", attributes})
 
   # A single <br> at the end of a block element has no visual representation
   # so add an extra one.

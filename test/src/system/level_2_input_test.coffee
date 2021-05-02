@@ -135,28 +135,6 @@ testGroup "Level 2 Input", testOptions, ->
       requestAnimationFrame ->
         expectDocument "\n"
 
-#  test "pasting a file", (expectDocument) ->
-#    createFile (file) ->
-#      clipboardData = createDataTransfer("Files": [file])
-#      dataTransfer = createDataTransfer("Files": [file])
-#      paste {clipboardData, dataTransfer}, ->
-#        attachments = getDocument().getAttachments()
-#        assert.equal attachments.length, 1
-#        assert.equal attachments[0].getFilename(), file.name
-#        expectDocument "#{Trix.OBJECT_REPLACEMENT_CHARACTER}\n"
-
-#  # "insertFromPaste InputEvent missing pasted files in dataTransfer"
-#  # - https://bugs.webkit.org/show_bug.cgi?id=194921
-#  test "pasting a file in Safari", (expectDocument) ->
-#    createFile (file) ->
-#      clipboardData = createDataTransfer("Files": [file])
-#      dataTransfer = createDataTransfer("text/html": """<img src="blob:#{location.origin}/531de8">""")
-#      paste {clipboardData, dataTransfer}, ->
-#        attachments = getDocument().getAttachments()
-#        assert.equal attachments.length, 1
-#        assert.equal attachments[0].getFilename(), file.name
-#        expectDocument "#{Trix.OBJECT_REPLACEMENT_CHARACTER}\n"
-
   # "insertFromPaste InputEvent missing text/uri-list in dataTransfer for pasted links"
   # - https://bugs.webkit.org/show_bug.cgi?id=196702
   test "pasting a link in Safari", (expectDocument) ->
@@ -169,19 +147,17 @@ testGroup "Level 2 Input", testOptions, ->
         assert.textAttributes([0, url.length], href: url)
         expectDocument "#{url}\n"
 
-#  # Pastes from MS Word include an image of the copied text 🙃
-#  # https://input-inspector.now.sh/profiles/QWDITsV60dpEVl1SOZg8
-#  test "pasting text from MS Word", (expectDocument) ->
-#    createFile (file) ->
-#      clipboardData = dataTransfer = createDataTransfer
-#        "text/html": """<span class="MsoNormal">abc</span>"""
-#        "text/plain": "abc"
-#        "Files": [file]
-#
-#      paste {dataTransfer}, ->
-#        attachments = getDocument().getAttachments()
-#        assert.equal attachments.length, 0
-#        expectDocument "abc\n"
+  # Pastes from MS Word include an image of the copied text 🙃
+  # https://input-inspector.now.sh/profiles/QWDITsV60dpEVl1SOZg8
+  test "pasting text from MS Word", (expectDocument) ->
+    createFile (file) ->
+      clipboardData = dataTransfer = createDataTransfer
+        "text/html": """<span class="MsoNormal">abc</span>"""
+        "text/plain": "abc"
+        "Files": [file]
+
+      paste {dataTransfer}, ->
+        expectDocument "abc\n"
 
   # "beforeinput" event is not fired for Paste and Match Style operations
   # - https://bugs.chromium.org/p/chromium/issues/detail?id=934448
