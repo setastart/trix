@@ -75,11 +75,6 @@ Trix.registerElement "trix-editor", do ->
       cursor: text;
     }
 
-    %t img {
-      max-width: 100%;
-      height: auto;
-    }
-
     %t [data-trix-cursor-target] {
       display: #{cursorTargetStyles.display} !important;
       width: #{cursorTargetStyles.width} !important;

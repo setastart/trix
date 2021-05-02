@@ -16,7 +16,7 @@ build:
     - trix-core.js
     - trix.css
   path: dist
-  js_compressor: uglifier
+#  js_compressor: uglifier
 
 require:
   - sprockets/export

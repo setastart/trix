@@ -217,14 +217,6 @@ class Trix.HTMLParser extends Trix.BasicObject
     catch
       {}
 
-  getImageDimensions = (element) ->
-    width = element.getAttribute("width")
-    height = element.getAttribute("height")
-    dimensions = {}
-    dimensions.width = parseInt(width, 10) if width
-    dimensions.height = parseInt(height, 10) if height
-    dimensions
-
   # Element inspection
 
   isBlockElement: (element) ->

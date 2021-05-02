@@ -1,5 +1,4 @@
 #= require trix/observers/mutation_observer
-#= require trix/operations/file_verification_operation
 
 {handleEvent, innerElementIsActive} = Trix
 
