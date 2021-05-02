@@ -16,7 +16,7 @@ Trix.config.textAttributes =
     inheritable: true
     parser: (element) ->
       style = window.getComputedStyle(element)
-      style["fontSize"] is "smaller"
+      style["fontSize"] is "small" or style["fontSize"] is "smaller"
   href:
     groupTagName: "a"
     parser: (element) ->
