@@ -35,7 +35,7 @@ testGroup "Trix.HTMLParser", ->
     html = """<img src="#{src}">"""
 
     finalHTML = getHTML(Trix.HTMLParser.parse(html).getDocument())
-    assert.ok pattern.test(finalHTML), "#{pattern} not found in #{JSON.stringify(finalHTML)}"
+    assert.notOk pattern.test(finalHTML), "#{pattern} not found in #{JSON.stringify(finalHTML)}"
 
   test "parses relative image URLs", ->
     src = "/test_helpers/fixtures/logo.png"
@@ -43,7 +43,7 @@ testGroup "Trix.HTMLParser", ->
     html = """<img src="#{src}">"""
 
     finalHTML = getHTML(Trix.HTMLParser.parse(html).getDocument())
-    assert.ok pattern.test(finalHTML), "#{pattern} not found in #{JSON.stringify(finalHTML)}"
+    assert.notOk pattern.test(finalHTML), "#{pattern} not found in #{JSON.stringify(finalHTML)}"
 
   test "parses unfamiliar html", ->
     html = """<meta charset="UTF-8"><span style="font-style: italic">abc</span><span>d</span><section style="margin:0"><blink>123</blink><a href="http://example.com">45<b>6</b></a>x<br />y</section><p style="margin:0">9</p>"""

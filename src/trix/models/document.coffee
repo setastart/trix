@@ -208,18 +208,6 @@ class Trix.Document extends Trix.Object
           block.copyWithText(block.text.removeAttributeAtRange(attribute, textRange))
     new @constructor blockList
 
-  updateAttributesForAttachment: (attributes, attachment) ->
-    [startPosition] = range = @getRangeOfAttachment(attachment)
-    {index} = @locationFromPosition(startPosition)
-    text = @getTextAtIndex(index)
-
-    new @constructor @blockList.editObjectAtIndex index, (block) ->
-      block.copyWithText(text.updateAttributesForAttachment(attributes, attachment))
-
-  removeAttributeForAttachment: (attribute, attachment) ->
-    range = @getRangeOfAttachment(attachment)
-    @removeAttributeAtRange(attribute, range)
-
   insertBlockBreakAtRange: (range) ->
     [startPosition] = range = normalizeRange(range)
     {offset} = @locationFromPosition(startPosition)
@@ -450,33 +438,6 @@ class Trix.Document extends Trix.Object
     if attributeName = block.getLastAttribute()
       attributes[attributeName] = true
     attributes
-
-  getAttachmentById: (attachmentId) ->
-    return attachment for attachment in @getAttachments() when attachment.id is attachmentId
-
-  getAttachmentPieces: ->
-    attachmentPieces = []
-    @blockList.eachObject ({text}) ->
-      attachmentPieces = attachmentPieces.concat(text.getAttachmentPieces())
-    attachmentPieces
-
-  getAttachments: ->
-    piece.attachment for piece in @getAttachmentPieces()
-
-  getRangeOfAttachment: (attachment) ->
-    position = 0
-    for {text}, index in @blockList.toArray()
-      if textRange = text.getRangeOfAttachment(attachment)
-        return normalizeRange([position + textRange[0], position + textRange[1]])
-      position += text.getLength()
-    return
-
-  getLocationRangeOfAttachment: (attachment) ->
-    range = @getRangeOfAttachment(attachment)
-    @locationRangeFromRange(range)
-
-  getAttachmentPieceForAttachment: (attachment) ->
-    return piece for piece in @getAttachmentPieces() when piece.attachment is attachment
 
   findRangesForBlockAttribute: (attributeName) ->
     position = 0
