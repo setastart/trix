@@ -2,15 +2,6 @@
 # should be explicitly required to enable the debugger.
 
 DEBUG_METHODS =
-  "Trix.AttachmentEditorController": "
-    didClickRemoveButton
-    uninstall
-  "
-
-  "Trix.CompositionController": "
-    didClickAttachment
-  "
-
   "Trix.EditorController": "
     setEditor
     loadDocument

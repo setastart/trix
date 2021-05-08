@@ -1,12 +1,7 @@
-#= require trix/models/attachment_piece
 #= require trix/models/string_piece
 #= require trix/models/splittable_list
 
 class Trix.Text extends Trix.Object
-  @textForAttachmentWithAttributes: (attachment, attributes) ->
-    piece = new Trix.AttachmentPiece attachment, attributes
-    new this [piece]
-
   @textForStringWithAttributes: (string, attributes) ->
     piece = new Trix.StringPiece string, attributes
     new this [piece]
@@ -101,34 +96,6 @@ class Trix.Text extends Trix.Object
   endsWithString: (string) ->
     length = @getLength()
     @getStringAtRange([length - string.length, length]) is string
-
-  getAttachmentPieces: ->
-    piece for piece in @pieceList.toArray() when piece.attachment?
-
-  getAttachments: ->
-    piece.attachment for piece in @getAttachmentPieces()
-
-  getAttachmentAndPositionById: (attachmentId) ->
-    position = 0
-    for piece in @pieceList.toArray()
-      if piece.attachment?.id is attachmentId
-        return { attachment: piece.attachment, position }
-      position += piece.length
-    attachment: null, position: null
-
-  getAttachmentById: (attachmentId) ->
-    {attachment, position} = @getAttachmentAndPositionById(attachmentId)
-    attachment
-
-  getRangeOfAttachment: (attachment) ->
-    {attachment, position} = @getAttachmentAndPositionById(attachment.id)
-    [position, position + 1] if attachment?
-
-  updateAttributesForAttachment: (attributes, attachment) ->
-    if range = @getRangeOfAttachment(attachment)
-      @addAttributesAtRange(attributes, range)
-    else
-      this
 
   getLength: ->
     @pieceList.getEndPosition()

@@ -1,4 +1,4 @@
-{after, assert, clickElement, clickToolbarButton, createFile, defer, insertImageAttachment, moveCursor, pasteContent, skip, test, testIf, testGroup, triggerEvent, typeCharacters, typeInToolbarDialog} = Trix.TestHelpers
+{after, assert, clickToolbarButton, defer, moveCursor, pasteContent, test, testIf, testGroup, triggerEvent, typeCharacters, typeInToolbarDialog} = Trix.TestHelpers
 
 testGroup "Custom element API", template: "editor_empty", ->
   test "element triggers trix-initialize on first connect", (done) ->
@@ -17,74 +17,6 @@ testGroup "Custom element API", template: "editor_empty", ->
         after 60, ->
           assert.equal initializeEventCount, 1
           done()
-
-  test "files are accepted by default", ->
-    getComposition().insertFile(createFile())
-    assert.equal getComposition().getAttachments().length, 1
-
-  test "rejecting a file by canceling the trix-file-accept event", ->
-    getEditorElement().addEventListener "trix-file-accept", (event) -> event.preventDefault()
-    getComposition().insertFile(createFile())
-    assert.equal getComposition().getAttachments().length, 0
-
-  test "element triggers attachment events", ->
-    file = createFile()
-    element = getEditorElement()
-    composition = getComposition()
-    attachment = null
-    events = []
-
-    element.addEventListener "trix-file-accept", (event) ->
-      events.push(event.type)
-      assert.ok file is event.file
-
-    element.addEventListener "trix-attachment-add", (event) ->
-      events.push(event.type)
-      attachment = event.attachment
-
-    composition.insertFile(file)
-    assert.deepEqual events, ["trix-file-accept", "trix-attachment-add"]
-
-    element.addEventListener "trix-attachment-remove", (event) ->
-      events.push(event.type)
-      assert.ok attachment is event.attachment
-
-    attachment.remove()
-    assert.deepEqual events, ["trix-file-accept", "trix-attachment-add", "trix-attachment-remove"]
-
-  test "element triggers trix-change when an attachment is edited", ->
-    file = createFile()
-    element = getEditorElement()
-    composition = getComposition()
-    attachment = null
-    events = []
-
-    element.addEventListener "trix-attachment-add", (event) ->
-      attachment = event.attachment
-
-    composition.insertFile(file)
-
-    element.addEventListener "trix-attachment-edit", (event) ->
-      events.push(event.type)
-
-    element.addEventListener "trix-change", (event) ->
-      events.push(event.type)
-
-    attachment.setAttributes(width: 9876)
-    assert.deepEqual events, ["trix-attachment-edit", "trix-change"]
-
-  test "editing the document in a trix-attachment-add handler doesn't trigger trix-attachment-add again", ->
-    element = getEditorElement()
-    composition = getComposition()
-    eventCount = 0
-
-    element.addEventListener "trix-attachment-add", ->
-      if eventCount++ is 0
-        element.editor.setSelectedRange([0,1])
-        element.editor.activateAttribute("bold")
-
-    composition.insertFile(createFile())
-    assert.equal eventCount, 1
 
   test "element triggers trix-change events when the document changes", (done) ->
     element = getEditorElement()
@@ -290,17 +222,7 @@ testGroup "Custom element API", template: "editor_empty", ->
       defer ->
         assert.equal blurEventCount, 1
         assert.equal focusEventCount, 1
-
-        insertImageAttachment()
-        after 20, ->
-          clickElement element.querySelector("figure"), ->
-            textarea = element.querySelector("textarea")
-            textarea.focus()
-            defer ->
-              assert.equal document.activeElement, textarea
-              assert.equal blurEventCount, 1
-              assert.equal focusEventCount, 1
-              done()
+        done()
 
   # Selenium doesn't seem to focus windows properly in some browsers (FF 47 on OS X)
   # so skip this test when unfocused pending a better solution.
@@ -334,28 +256,6 @@ testGroup "Custom element API", template: "editor_empty", ->
         clickToolbarButton attribute: "quote", ->
           assert.notEqual serializedHTML, element.value
           done()
-
-  test "element serializes HTML after attachment attribute changes", (done) ->
-    element = getEditorElement()
-    attributes = url: "test_helpers/fixtures/logo.png", contentType: "image/png"
-
-    element.addEventListener "trix-attachment-add", (event) ->
-      {attachment} = event
-      requestAnimationFrame ->
-        serializedHTML = element.value
-        attachment.setAttributes(attributes)
-        assert.notEqual serializedHTML, element.value
-
-        serializedHTML = element.value
-        assert.ok serializedHTML.indexOf(TEST_IMAGE_URL) < 0, "serialized HTML contains previous attachment attributes"
-        assert.ok serializedHTML.indexOf(attributes.url) > 0, "serialized HTML doesn't contain current attachment attributes"
-
-        attachment.remove()
-        requestAnimationFrame ->
-          done()
-
-    requestAnimationFrame ->
-      insertImageAttachment()
 
   test "editor resets to its original value on form reset", (expectDocument) ->
     element = getEditorElement()
@@ -406,4 +306,22 @@ testGroup "<label> support", template: "editor_with_labels", ->
     assert.notEqual getEditorElement(), label.control
     label.click()
     assert.notEqual getEditorElement(), document.activeElement
+    done()
+
+testGroup "form property references its <form>", template: "editors_with_forms", container: "div", ->
+  test "accesses its ancestor form", (done) ->
+    form = document.getElementById("ancestor-form")
+    editor = document.getElementById("editor-with-ancestor-form")
+    assert.equal editor.form, form
+    done()
+
+  test "transitively accesses its related <input> element's <form>", (done) ->
+    form = document.getElementById("input-form")
+    editor = document.getElementById("editor-with-input-form")
+    assert.equal editor.form, form
+    done()
+
+  test "returns null when there is no associated <form>", (done) ->
+    editor = document.getElementById("editor-with-no-form")
+    assert.equal editor.form, null
     done()

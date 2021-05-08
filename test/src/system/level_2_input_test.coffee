@@ -43,18 +43,20 @@ testGroup "Level 2 Input", testOptions, ->
       expectDocument("abc\n")
 
   test "insertOrderedList", (expectDocument) ->
-    insertString("abc")
+    insertString("a\nb")
     performInputTypeUsingExecCommand "insertOrderedList", inputType: "insertOrderedList", ->
-      assert.blockAttributes([0, 4], ["numberList", "number"])
+      assert.blockAttributes([0, 2], [])
+      assert.blockAttributes([2, 4], ["numberList", "number"])
       assert.ok isToolbarButtonActive(attribute: "number")
-      expectDocument("abc\n")
+      expectDocument("a\nb\n")
 
   test "insertUnorderedList", (expectDocument) ->
-    insertString("abc")
+    insertString("a\nb")
     performInputTypeUsingExecCommand "insertUnorderedList", inputType: "insertUnorderedList", ->
-      assert.blockAttributes([0, 4], ["bulletList", "bullet"])
+      assert.blockAttributes([0, 2], [])
+      assert.blockAttributes([2, 4], ["bulletList", "bullet"])
       assert.ok isToolbarButtonActive(attribute: "bullet")
-      expectDocument("abc\n")
+      expectDocument("a\nb\n")
 
   test "insertLineBreak", (expectDocument) ->
     clickToolbarButton attribute: "quote", ->
@@ -135,28 +137,6 @@ testGroup "Level 2 Input", testOptions, ->
       requestAnimationFrame ->
         expectDocument "\n"
 
-  test "pasting a file", (expectDocument) ->
-    createFile (file) ->
-      clipboardData = createDataTransfer("Files": [file])
-      dataTransfer = createDataTransfer("Files": [file])
-      paste {clipboardData, dataTransfer}, ->
-        attachments = getDocument().getAttachments()
-        assert.equal attachments.length, 1
-        assert.equal attachments[0].getFilename(), file.name
-        expectDocument "#{Trix.OBJECT_REPLACEMENT_CHARACTER}\n"
-
-  # "insertFromPaste InputEvent missing pasted files in dataTransfer"
-  # - https://bugs.webkit.org/show_bug.cgi?id=194921
-  test "pasting a file in Safari", (expectDocument) ->
-    createFile (file) ->
-      clipboardData = createDataTransfer("Files": [file])
-      dataTransfer = createDataTransfer("text/html": """<img src="blob:#{location.origin}/531de8">""")
-      paste {clipboardData, dataTransfer}, ->
-        attachments = getDocument().getAttachments()
-        assert.equal attachments.length, 1
-        assert.equal attachments[0].getFilename(), file.name
-        expectDocument "#{Trix.OBJECT_REPLACEMENT_CHARACTER}\n"
-
   # "insertFromPaste InputEvent missing text/uri-list in dataTransfer for pasted links"
   # - https://bugs.webkit.org/show_bug.cgi?id=196702
   test "pasting a link in Safari", (expectDocument) ->
@@ -179,8 +159,6 @@ testGroup "Level 2 Input", testOptions, ->
         "Files": [file]
 
       paste {dataTransfer}, ->
-        attachments = getDocument().getAttachments()
-        assert.equal attachments.length, 0
         expectDocument "abc\n"
 
   # "beforeinput" event is not fired for Paste and Match Style operations

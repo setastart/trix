@@ -56,47 +56,6 @@ testGroup "Text formatting", template: "editor_empty", ->
           assert.textAttributes([0, 2], {})
           done()
 
-  test "selecting an attachment disables text formatting", (done) ->
-    text = fixtures["file attachment"].document.getBlockAtIndex(0).getTextWithoutBlockBreak()
-    insertText(text)
-    typeCharacters "a", ->
-      assert.notOk isToolbarButtonDisabled(attribute: "bold")
-      expandSelection "left", ->
-        assert.notOk isToolbarButtonDisabled(attribute: "bold")
-        expandSelection "left", ->
-          assert.ok isToolbarButtonDisabled(attribute: "bold")
-          done()
-
-  test "selecting an attachment deactivates toolbar dialog", (done) ->
-    text = fixtures["file attachment"].document.getBlockAtIndex(0).getTextWithoutBlockBreak()
-    insertText(text)
-    clickToolbarButton attribute: "href", ->
-      assert.ok isToolbarDialogActive(attribute: "href")
-      clickElement getEditorElement().querySelector("figure"), ->
-        assert.notOk isToolbarDialogActive(attribute: "href")
-        assert.ok isToolbarButtonDisabled(attribute: "href")
-        done()
-
-  test "typing over a selected attachment does not apply disabled formatting attributes", (expectDocument) ->
-    text = fixtures["file attachment"].document.getBlockAtIndex(0).getTextWithoutBlockBreak()
-    insertText(text)
-    expandSelection "left", ->
-      assert.ok isToolbarButtonDisabled(attribute: "bold")
-      typeCharacters "a", ->
-        assert.textAttributes([0, 1], {})
-        expectDocument("a\n")
-
-  test "applying a link to an attachment with a host-provided href", (done) ->
-    text = fixtures["file attachment"].document.getBlockAtIndex(0).getTextWithoutBlockBreak()
-    insertText(text)
-    typeCharacters "a", ->
-      assert.notOk isToolbarButtonDisabled(attribute: "href")
-      expandSelection "left", ->
-        assert.notOk isToolbarButtonDisabled(attribute: "href")
-        expandSelection "left", ->
-          assert.ok isToolbarButtonDisabled(attribute: "href")
-          done()
-
   test "typing after a link", (done) ->
     typeCharacters "ab", ->
       expandSelection direction: "left", times: 2, ->

@@ -1,9 +1,11 @@
 # Fork of Trix
 
 This is a fork of Trix (https://github.com/basecamp/trix) that:
+- Removes all attachment and image upload support.
+- Removes all CSS.
 - Uses `<p>` instead of `<div>` for default text blocks.
-- Adds `<small>` button (no graphics).
-- Adds `<h2>` button (no graphics).
+- Adds a `H2` button to the toolbar (no graphics).
+- Adds a `small` button to the toolbar (no graphics).
 - Makes pressing <kbd>shift + enter</kbd> to insert a `<br>`.
 - Makes pressing <kbd>enter</kbd> to close current scope and add a new one (like a new paragraph).
 - Removes attachments from toolbar.
@@ -19,7 +21,7 @@ document.addEventListener('trix-before-initialize', function(ev) {
     ev.target.addEventListener('keydown', function(ev) {
         if (ev.shiftKey && ev.key == "Enter") {
             ev.target.editor.recordUndoEntry('Shift+Enter');
-            ev.target.editor.insertHTML('<br><br>');
+            ev.target.editor.insertHTML('<br>');
             ev.preventDefault();
         }
     });
@@ -29,6 +31,7 @@ document.addEventListener('trix-before-initialize', function(ev) {
 
 ## Original README.md:
 
+# Trix
 ### A Rich Text Editor for Everyday Writing
 
 **Compose beautifully formatted text in your web application.** Trix is a WYSIWYG editor for writing messages, comments, articles, and lists—the simple documents most web apps are made of. It features a sophisticated document model, support for embedded attachments, and outputs terse and consistent HTML.

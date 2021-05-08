@@ -1,7 +1,7 @@
 #= require trix/models/html_sanitizer
 
 {arraysAreEqual, makeElement, tagName, getBlockTagNames, walkTree,
- findClosestElementFromNode, elementContainsNode, nodeIsAttachmentElement,
+ findClosestElementFromNode, elementContainsNode,
  normalizeSpaces, breakableWhitespacePattern, squishBreakableWhitespace} = Trix
 
 class Trix.HTMLParser extends Trix.BasicObject
@@ -110,31 +110,17 @@ class Trix.HTMLParser extends Trix.BasicObject
     @appendStringWithAttributes(string, @getTextAttributes(node.parentNode))
 
   processElement: (element) ->
-    if nodeIsAttachmentElement(element)
-      attributes = parseTrixDataAttribute(element, "attachment")
-      if Object.keys(attributes).length
-        textAttributes = @getTextAttributes(element)
-        @appendAttachmentWithAttributes(attributes, textAttributes)
-        # We have everything we need so avoid processing inner nodes
-        element.innerHTML = ""
-      @processedElements.push(element)
-    else
-      switch tagName(element)
-        when "br"
-          unless @isExtraBR(element) or @isBlockElement(element.nextSibling)
-            @appendStringWithAttributes("\n", @getTextAttributes(element))
-          @processedElements.push(element)
-        when "img"
-          attributes = url: element.getAttribute("src"), contentType: "image"
-          attributes[key] = value for key, value of getImageDimensions(element)
-          @appendAttachmentWithAttributes(attributes, @getTextAttributes(element))
-          @processedElements.push(element)
-        when "tr"
-          unless element.parentNode.firstChild is element
-            @appendStringWithAttributes("\n")
-        when "td"
-          unless element.parentNode.firstChild is element
-            @appendStringWithAttributes(" | ")
+    switch tagName(element)
+      when "br"
+        unless @isExtraBR(element) or @isBlockElement(element.nextSibling)
+          @appendStringWithAttributes("\n", @getTextAttributes(element))
+        @processedElements.push(element)
+      when "tr" # todo: check what this is used for
+        unless element.parentNode.firstChild is element
+          @appendStringWithAttributes("\n")
+      when "td" # todo: check what this is used for
+        unless element.parentNode.firstChild is element
+          @appendStringWithAttributes(" | ")
 
   # Document construction
 
@@ -149,9 +135,6 @@ class Trix.HTMLParser extends Trix.BasicObject
 
   appendStringWithAttributes: (string, attributes) ->
     @appendPiece(pieceForString(string, attributes))
-
-  appendAttachmentWithAttributes: (attachment, attributes) ->
-    @appendPiece(pieceForAttachment(attachment, attributes))
 
   appendPiece: (piece) ->
     if @blocks.length is 0
@@ -181,10 +164,6 @@ class Trix.HTMLParser extends Trix.BasicObject
     string = normalizeSpaces(string)
     {string, attributes, type}
 
-  pieceForAttachment = (attachment, attributes = {}) ->
-    type = "attachment"
-    {attachment, attributes, type}
-
   blockForAttributes = (attributes = {}) ->
     text = []
     {text, attributes}
@@ -210,10 +189,6 @@ class Trix.HTMLParser extends Trix.BasicObject
       else if config.styleProperty
         if value = element.style[config.styleProperty]
           attributes[attribute] = value
-
-    if nodeIsAttachmentElement(element)
-      for key, value of parseTrixDataAttribute(element, "attributes")
-        attributes[key] = value
 
     attributes
 
@@ -242,19 +217,10 @@ class Trix.HTMLParser extends Trix.BasicObject
     catch
       {}
 
-  getImageDimensions = (element) ->
-    width = element.getAttribute("width")
-    height = element.getAttribute("height")
-    dimensions = {}
-    dimensions.width = parseInt(width, 10) if width
-    dimensions.height = parseInt(height, 10) if height
-    dimensions
-
   # Element inspection
 
   isBlockElement: (element) ->
     return unless element?.nodeType is Node.ELEMENT_NODE
-    return if nodeIsAttachmentElement(element)
     return if findClosestElementFromNode(element, matchingSelector: "td", untilNode: @containerElement)
     tagName(element) in getBlockTagNames() or window.getComputedStyle(element).display is "block"
 

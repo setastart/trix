@@ -3,8 +3,6 @@
 
 {browser, makeElement, triggerEvent, handleEvent, handleEventOnce, findClosestElementFromNode} = Trix
 
-{attachmentSelector} = Trix.AttachmentView
-
 Trix.registerElement "trix-editor", do ->
   id = 0
 
@@ -77,26 +75,6 @@ Trix.registerElement "trix-editor", do ->
       cursor: text;
     }
 
-    %t img {
-      max-width: 100%;
-      height: auto;
-    }
-
-    %t #{attachmentSelector} figcaption textarea {
-      resize: none;
-    }
-
-    %t #{attachmentSelector} figcaption textarea.trix-autoresize-clone {
-      position: absolute;
-      left: -9999px;
-      max-height: 0px;
-    }
-
-    %t #{attachmentSelector} figcaption[data-trix-placeholder]:empty::before {
-      content: attr(data-trix-placeholder);
-      color: graytext;
-    }
-
     %t [data-trix-cursor-target] {
       display: #{cursorTargetStyles.display} !important;
       width: #{cursorTargetStyles.width} !important;
@@ -145,6 +123,10 @@ Trix.registerElement "trix-editor", do ->
         element = makeElement("trix-toolbar", id: toolbarId)
         @parentNode.insertBefore(element, this)
         element
+
+  form:
+    get: ->
+      @inputElement?.form
 
   inputElement:
     get: ->
@@ -222,7 +204,7 @@ Trix.registerElement "trix-editor", do ->
 
   resetBubbled: (event) ->
     return if event.defaultPrevented
-    return unless event.target is @inputElement?.form
+    return unless event.target is @form
     @reset()
 
   clickBubbled: (event) ->

@@ -1,6 +1,6 @@
 {elementContainsNode, findChildIndexOfNode, nodeIsBlockStart,
  nodeIsBlockStartComment, nodeIsBlockContainer, nodeIsCursorTarget,
- nodeIsEmptyTextNode, nodeIsTextNode, nodeIsAttachmentElement, tagName, walkTree} = Trix
+ nodeIsEmptyTextNode, nodeIsTextNode, tagName, walkTree} = Trix
 
 class Trix.LocationMapper
   constructor: (@element) ->
@@ -9,10 +9,6 @@ class Trix.LocationMapper
     childIndex = 0
     foundBlock = false
     location = index: 0, offset: 0
-
-    if attachmentElement = @findAttachmentElementParentForNode(container)
-      container = attachmentElement.parentNode
-      offset = findChildIndexOfNode(attachmentElement)
 
     walker = walkTree(@element, usingFilter: rejectAttachmentContents)
 
@@ -101,11 +97,6 @@ class Trix.LocationMapper
 
   # Private
 
-  findAttachmentElementParentForNode: (node) ->
-    while node and node isnt @element
-      return node if nodeIsAttachmentElement(node)
-      node = node.parentNode
-
   getSignificantNodesForIndex: (index) ->
     nodes = []
     walker = walkTree(@element, usingFilter: acceptSignificantNodes)
@@ -135,7 +126,7 @@ class Trix.LocationMapper
       else
         string = node.textContent
         string.length
-    else if tagName(node) is "br" or nodeIsAttachmentElement(node)
+    else if tagName(node) is "br"
       1
     else
       0
@@ -153,7 +144,4 @@ class Trix.LocationMapper
       NodeFilter.FILTER_ACCEPT
 
   rejectAttachmentContents = (node) ->
-    if nodeIsAttachmentElement(node.parentNode)
-      NodeFilter.FILTER_REJECT
-    else
       NodeFilter.FILTER_ACCEPT

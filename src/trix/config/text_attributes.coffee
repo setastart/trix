@@ -16,12 +16,11 @@ Trix.config.textAttributes =
     inheritable: true
     parser: (element) ->
       style = window.getComputedStyle(element)
-      style["fontSize"] is "smaller"
+      style["fontSize"] is "small" or style["fontSize"] is "smaller"
   href:
     groupTagName: "a"
     parser: (element) ->
-      {attachmentSelector} = Trix.AttachmentView
-      matchingSelector = "a:not(#{attachmentSelector})"
+      matchingSelector = "a"
       if link = Trix.findClosestElementFromNode(element, {matchingSelector})
         link.getAttribute("href")
   strike:

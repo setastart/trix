@@ -1,19 +1,17 @@
 #= require trix/models/document
 #= require trix/models/line_break_insertion
 
-{normalizeRange, rangesAreEqual, rangeIsCollapsed, objectsAreEqual, arrayStartsWith, summarizeArrayChange, getAllAttributeNames, getBlockConfig, getTextConfig, extend} = Trix
+{normalizeRange, rangeIsCollapsed, objectsAreEqual, arrayStartsWith, getAllAttributeNames, getBlockConfig, getTextConfig, extend} = Trix
 
 class Trix.Composition extends Trix.BasicObject
   constructor: ->
     @document = new Trix.Document
-    @attachments = []
     @currentAttributes = {}
     @revision = 0
 
   setDocument: (document) ->
     unless document.isEqualTo(@document)
       @document = document
-      @refreshAttachments()
       @revision++
       @delegate?.compositionDidChangeDocument?(document)
 
@@ -107,34 +105,6 @@ class Trix.Composition extends Trix.BasicObject
     @setDocument(document)
     @setSelection(selectedRange)
 
-  insertFile: (file) ->
-    @insertFiles([file])
-
-  insertFiles: (files) ->
-    attachments = []
-    for file in files when @delegate?.compositionShouldAcceptFile(file)
-      attachment = Trix.Attachment.attachmentForFile(file)
-      attachments.push(attachment)
-    @insertAttachments(attachments)
-
-  insertAttachment: (attachment) ->
-    @insertAttachments([attachment])
-
-  insertAttachments: (attachments) ->
-    text = new Trix.Text
-
-    for attachment in attachments
-      type = attachment.getType()
-      presentation = Trix.config.attachments[type]?.presentation
-
-      attributes = @getCurrentTextAttributes()
-      attributes.presentation = presentation if presentation
-
-      attachmentText = Trix.Text.textForAttachmentWithAttributes(attachment, attributes)
-      text = text.appendText(attachmentText)
-
-    @insertText(text)
-
   shouldManageDeletingInDirection: (direction) ->
     locationRange = @getLocationRange()
     if rangeIsCollapsed(locationRange)
@@ -168,27 +138,15 @@ class Trix.Composition extends Trix.BasicObject
 
     if selectionIsCollapsed
       range = @getExpandedRangeInDirection(direction, {length})
-      if direction is "backward"
-        attachment = @getAttachmentAtRange(range)
 
-    if attachment
-      @editAttachment(attachment)
-      false
-    else
-      @setDocument(@document.removeTextAtRange(range))
-      @setSelection(range[0])
-      false if deletingIntoPreviousBlock or selectionSpansBlocks
+    @setDocument(@document.removeTextAtRange(range))
+    @setSelection(range[0])
+    false if deletingIntoPreviousBlock or selectionSpansBlocks
 
   moveTextFromRange: (range) ->
     [position] = @getSelectedRange()
     @setDocument(@document.moveTextFromRangeToPosition(range, position))
     @setSelection(position)
-
-  removeAttachment: (attachment) ->
-    if range = @document.getRangeOfAttachment(attachment)
-      @stopEditingAttachment()
-      @setDocument(@document.removeTextAtRange(range))
-      @setSelection(range[0])
 
   removeLastBlockAttribute: ->
     [startPosition, endPosition] = @getSelectedRange()
@@ -230,8 +188,6 @@ class Trix.Composition extends Trix.BasicObject
 
   canSetCurrentTextAttribute: (attributeName) ->
     return unless document = @getSelectedDocument()
-    for attachment in document.getAttachments()
-      return false unless attachment.hasContent()
     true
 
   canSetCurrentBlockAttribute: (attributeName) ->
@@ -414,26 +370,16 @@ class Trix.Composition extends Trix.BasicObject
     normalizeRange([startPosition, endPosition])
 
   shouldManageMovingCursorInDirection: (direction) ->
-    return true if @editingAttachment
     range = @getExpandedRangeInDirection(direction)
-    @getAttachmentAtRange(range)?
 
   moveCursorInDirection: (direction) ->
-    if @editingAttachment
-      range = @document.getRangeOfAttachment(@editingAttachment)
-    else
-      selectedRange = @getSelectedRange()
-      range = @getExpandedRangeInDirection(direction)
-      canEditAttachment = not rangesAreEqual(selectedRange, range)
+    selectedRange = @getSelectedRange()
+    range = @getExpandedRangeInDirection(direction)
 
     if direction is "backward"
       @setSelectedRange(range[0])
     else
       @setSelectedRange(range[1])
-
-    if canEditAttachment
-      if attachment = @getAttachmentAtRange(range)
-        @editAttachment(attachment)
 
   expandSelectionInDirection: (direction, {length} = {}) ->
     range = @getExpandedRangeInDirection(direction, {length})
@@ -448,11 +394,8 @@ class Trix.Composition extends Trix.BasicObject
     range = @document.getRangeOfCommonAttributeAtPosition(attributeName, position)
     @setSelectedRange(range)
 
-  selectionContainsAttachments: ->
-    @getSelectedAttachments()?.length > 0
-
   selectionIsInCursorTarget: ->
-    @editingAttachment or @positionIsCursorTarget(@getPosition())
+    @positionIsCursorTarget(@getPosition())
 
   positionIsCursorTarget: (position) ->
     if location = @document.locationFromPosition(position)
@@ -464,56 +407,6 @@ class Trix.Composition extends Trix.BasicObject
   getSelectedDocument: ->
     if selectedRange = @getSelectedRange()
       @document.getDocumentAtRange(selectedRange)
-
-  getSelectedAttachments: ->
-    @getSelectedDocument()?.getAttachments()
-
-  # Attachments
-
-  getAttachments: ->
-    @attachments.slice(0)
-
-  refreshAttachments: ->
-    attachments = @document.getAttachments()
-    {added, removed} = summarizeArrayChange(@attachments, attachments)
-    @attachments = attachments
-
-    for attachment in removed
-      attachment.delegate = null
-      @delegate?.compositionDidRemoveAttachment?(attachment)
-
-    for attachment in added
-      attachment.delegate = this
-      @delegate?.compositionDidAddAttachment?(attachment)
-
-  # Attachment delegate
-
-  attachmentDidChangeAttributes: (attachment) ->
-    @revision++
-    @delegate?.compositionDidEditAttachment?(attachment)
-
-  attachmentDidChangePreviewURL: (attachment) ->
-    @revision++
-    @delegate?.compositionDidChangeAttachmentPreviewURL?(attachment)
-
-  # Attachment editing
-
-  editAttachment: (attachment, options) ->
-    return if attachment is @editingAttachment
-    @stopEditingAttachment()
-    @editingAttachment = attachment
-    @delegate?.compositionDidStartEditingAttachment?(@editingAttachment, options)
-
-  stopEditingAttachment: ->
-    return unless @editingAttachment
-    @delegate?.compositionDidStopEditingAttachment?(@editingAttachment)
-    @editingAttachment = null
-
-  updateAttributesForAttachment: (attributes, attachment) ->
-    @setDocument(@document.updateAttributesForAttachment(attributes, attachment))
-
-  removeAttributeForAttachment: (attribute, attachment) ->
-    @setDocument(@document.removeAttributeForAttachment(attribute, attachment))
 
   # Private
 
@@ -549,11 +442,6 @@ class Trix.Composition extends Trix.BasicObject
   getBlock: ->
     if locationRange = @getLocationRange()
       @document.getBlockAtIndex(locationRange[0].index)
-
-  getAttachmentAtRange: (range) ->
-    document = @document.getDocumentAtRange(range)
-    if document.toString() is "#{Trix.OBJECT_REPLACEMENT_CHARACTER}\n"
-      document.getAttachments()[0]
 
   notifyDelegateOfCurrentAttributesChange: ->
     @delegate?.compositionDidChangeCurrentAttributes?(@currentAttributes)

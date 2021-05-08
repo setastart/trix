@@ -5,7 +5,6 @@
 #= require trix/controllers/toolbar_controller
 #= require trix/models/composition
 #= require trix/models/editor
-#= require trix/models/attachment_manager
 #= require trix/models/selection_manager
 
 {rangeIsCollapsed, rangesAreEqual, objectsAreEqual, getBlockConfig} = Trix
@@ -17,9 +16,6 @@ class Trix.EditorController extends Trix.Controller
 
     @composition = new Trix.Composition
     @composition.delegate = this
-
-    @attachmentManager = new Trix.AttachmentManager @composition.getAttachments()
-    @attachmentManager.delegate = this
 
     @inputController = new Trix["Level#{Trix.config.input.getLevel()}InputController"](@editorElement)
     @inputController.delegate = this
@@ -63,36 +59,6 @@ class Trix.EditorController extends Trix.Controller
   compositionDidPerformInsertionAtRange: (range) ->
     @pastedRange = range if @pasting
 
-  compositionShouldAcceptFile: (file) ->
-    @notifyEditorElement("file-accept", {file})
-
-  compositionDidAddAttachment: (attachment) ->
-    managedAttachment = @attachmentManager.manageAttachment(attachment)
-    @notifyEditorElement("attachment-add", attachment: managedAttachment)
-
-  compositionDidEditAttachment: (attachment) ->
-    @compositionController.rerenderViewForObject(attachment)
-    managedAttachment = @attachmentManager.manageAttachment(attachment)
-    @notifyEditorElement("attachment-edit", attachment: managedAttachment)
-    @notifyEditorElement("change")
-
-  compositionDidChangeAttachmentPreviewURL: (attachment) ->
-    @compositionController.invalidateViewForObject(attachment)
-    @notifyEditorElement("change")
-
-  compositionDidRemoveAttachment: (attachment) ->
-    managedAttachment = @attachmentManager.unmanageAttachment(attachment)
-    @notifyEditorElement("attachment-remove", attachment: managedAttachment)
-
-  compositionDidStartEditingAttachment: (attachment, options) ->
-    @attachmentLocationRange = @composition.document.getLocationRangeOfAttachment(attachment)
-    @compositionController.installAttachmentEditorForAttachment(attachment, options)
-    @selectionManager.setLocationRange(@attachmentLocationRange)
-
-  compositionDidStopEditingAttachment: (attachment) ->
-    @compositionController.uninstallAttachmentEditor()
-    @attachmentLocationRange = null
-
   compositionDidRequestChangingSelectionToLocationRange: (locationRange) ->
     return if @loadingSnapshot and not @isFocused()
     @requestedLocationRange = locationRange
@@ -112,11 +78,6 @@ class Trix.EditorController extends Trix.Controller
 
   @proxyMethod "getSelectionManager().setLocationRange"
   @proxyMethod "getSelectionManager().getLocationRange"
-
-  # Attachment manager delegate
-
-  attachmentManagerDidRequestRemovalOfAttachment: (attachment) ->
-    @removeAttachment(attachment)
 
   # Document controller delegate
 
@@ -146,26 +107,11 @@ class Trix.EditorController extends Trix.Controller
     @renderedCompositionRevision = @composition.revision
 
   compositionControllerDidFocus: ->
-    @setLocationRange(index: 0, offset: 0) if @isFocusedInvisibly()
     @toolbarController.hideDialog()
     @notifyEditorElement("focus")
 
   compositionControllerDidBlur: ->
     @notifyEditorElement("blur")
-
-  compositionControllerDidSelectAttachment: (attachment, options) ->
-    @toolbarController.hideDialog()
-    @composition.editAttachment(attachment, options)
-
-  compositionControllerDidRequestDeselectingAttachment: (attachment) ->
-    locationRange = @attachmentLocationRange ? @composition.document.getLocationRangeOfAttachment(attachment)
-    @selectionManager.setLocationRange(locationRange[1])
-
-  compositionControllerWillUpdateAttachment: (attachment) ->
-    @editor.recordUndoEntry("Edit Attachment", context: attachment.id, consolidatable: true)
-
-  compositionControllerDidRequestRemovalOfAttachment: (attachment) ->
-    @removeAttachment(attachment)
 
   # Input controller delegate
 
@@ -211,9 +157,6 @@ class Trix.EditorController extends Trix.Controller
   inputControllerWillMoveText: ->
     @editor.recordUndoEntry("Move")
 
-  inputControllerWillAttachFiles: ->
-    @editor.recordUndoEntry("Drop Files")
-
   inputControllerWillPerformUndo: ->
     @editor.undo()
 
@@ -238,8 +181,6 @@ class Trix.EditorController extends Trix.Controller
   locationRangeDidChange: (locationRange) ->
     @composition.updateCurrentAttributes()
     @updateCurrentActions()
-    if @attachmentLocationRange and not rangesAreEqual(@attachmentLocationRange, locationRange)
-      @composition.stopEditingAttachment()
     @notifyEditorElement("selection-change")
 
   # Toolbar controller delegate
@@ -313,9 +254,6 @@ class Trix.EditorController extends Trix.Controller
     decreaseNestingLevel:
       test: -> @editor.canDecreaseNestingLevel()
       perform: -> @editor.decreaseNestingLevel() and @render()
-    attachFiles:
-      test: -> true
-      perform: -> Trix.config.input.pickFiles(@editor.insertFiles)
 
   canInvokeAction: (actionName) ->
     if @actionIsExternal(actionName)
@@ -378,15 +316,10 @@ class Trix.EditorController extends Trix.Controller
         if @documentChangedSinceLastRender
           @documentChangedSinceLastRender = false
           @notifyEditorElement("change")
-      when "change", "attachment-add", "attachment-edit", "attachment-remove"
+      when "change"
         @updateInputElement()
 
     @editorElement.notify(message, data)
-
-  removeAttachment: (attachment) ->
-    @editor.recordUndoEntry("Delete Attachment")
-    @composition.removeAttachment(attachment)
-    @render()
 
   recordFormattingUndoEntry: (attributeName) ->
     blockConfig = getBlockConfig(attributeName)
@@ -415,8 +348,3 @@ class Trix.EditorController extends Trix.Controller
 
   isFocused: ->
     @editorElement is @editorElement.ownerDocument?.activeElement
-
-  # Detect "Cursor disappears sporadically" Firefox bug.
-  # - https://bugzilla.mozilla.org/show_bug.cgi?id=226301
-  isFocusedInvisibly: ->
-    @isFocused() and not @getLocationRange()

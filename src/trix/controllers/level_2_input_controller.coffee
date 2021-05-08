@@ -41,7 +41,6 @@ class Trix.Level2InputController extends Trix.InputController
       # https://bugs.webkit.org/show_bug.cgi?id=194921
       if pasteEventHasFilesOnly(event)
         event.preventDefault()
-        @attachFiles(event.clipboardData.files)
 
       # https://bugs.chromium.org/p/chromium/issues/detail?id=934448
       else if pasteEventHasPlainTextOnly(event)
@@ -74,15 +73,8 @@ class Trix.Level2InputController extends Trix.InputController
       Trix.selectionChangeObserver.reset()
 
     dragstart: (event) ->
-      if @responder?.selectionContainsAttachments()
-        event.dataTransfer.setData("application/x-trix-dragging", true)
-        @dragging =
-          range: @responder?.getSelectedRange()
-          point: pointFromEvent(event)
 
     dragenter: (event) ->
-      if dragEventHasFiles(event)
-        event.preventDefault()
 
     dragover: (event) ->
       if @dragging
@@ -92,8 +84,6 @@ class Trix.Level2InputController extends Trix.InputController
           @dragging.point = point
           @responder?.setLocationRangeFromPointRange(point)
 
-      else if dragEventHasFiles(event)
-        event.preventDefault()
 
     drop: (event) ->
       if @dragging
@@ -102,12 +92,6 @@ class Trix.Level2InputController extends Trix.InputController
         @responder?.moveTextFromRange(@dragging.range)
         @dragging = null
         @scheduleRender()
-
-      else if dragEventHasFiles(event)
-        event.preventDefault()
-        point = pointFromEvent(event)
-        @responder?.setLocationRangeFromPointRange(point)
-        @attachFiles(event.dataTransfer.files)
 
     dragend: ->
       if @dragging
@@ -312,15 +296,6 @@ class Trix.Level2InputController extends Trix.InputController
         @afterRender = =>
           @delegate?.inputControllerDidPaste(paste)
 
-      else if dataTransfer.files?.length
-        paste.type = "File"
-        paste.file = dataTransfer.files[0]
-        @delegate?.inputControllerWillPaste(paste)
-        @withTargetDOMRange ->
-          @responder?.insertFile(paste.file)
-        @afterRender = =>
-          @delegate?.inputControllerDidPaste(paste)
-
     insertFromYank: ->
       @insertString(@event.data)
 
@@ -411,9 +386,6 @@ class Trix.Level2InputController extends Trix.InputController
     finally
       @event = null
     result
-
-  dragEventHasFiles = (event) ->
-    "Files" in (event.dataTransfer?.types ? [])
 
   pasteEventHasFilesOnly = (event) ->
     if clipboard = event.clipboardData

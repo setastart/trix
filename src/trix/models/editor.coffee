@@ -1,8 +1,7 @@
 #= require trix/models/undo_manager
-#= require trix/filters/attachment_gallery_filter
 
 class Trix.Editor
-  DEFAULT_FILTERS = [ Trix.attachmentGalleryFilter ]
+  DEFAULT_FILTERS = []
 
   constructor: (@composition, @selectionManager, @element) ->
     @undoManager = new Trix.UndoManager @composition
@@ -39,20 +38,8 @@ class Trix.Editor
   deleteInDirection: (direction) ->
     @composition.deleteInDirection(direction)
 
-  insertAttachment: (attachment) ->
-    @composition.insertAttachment(attachment)
-
-  insertAttachments: (attachments) ->
-    @composition.insertAttachments(attachments)
-
   insertDocument: (document) ->
     @composition.insertDocument(document)
-
-  insertFile: (file) ->
-    @composition.insertFile(file)
-
-  insertFiles: (files) =>
-    @composition.insertFiles(files)
 
   insertHTML: (html) ->
     @composition.insertHTML(html)
