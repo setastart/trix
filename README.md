@@ -1,3 +1,36 @@
+# Fork of Trix
+
+This is a fork of Trix (https://github.com/basecamp/trix) that:
+- Removes all attachment and image upload support.
+- Removes all CSS.
+- Uses `<p>` instead of `<div>` for default text blocks.
+- Adds a `H2` button to the toolbar (no graphics).
+- Adds a `small` button to the toolbar (no graphics).
+- Makes pressing <kbd>shift + enter</kbd> to insert a `<br>`.
+- Makes pressing <kbd>enter</kbd> to close current scope and add a new one (like a new paragraph).
+- Removes attachments from toolbar.
+
+The code is based on https://github.com/basecamp/trix/issues/202
+
+## Notes
+
+- Since Trix 1.1.0, on Safari <kbd>shift + enter</kbd> stopped working and behaves the same as a normal <kbd>enter</kbd>. One way to fix it is to add the following javascript to the web page:
+
+```
+document.addEventListener('trix-before-initialize', function(ev) {
+    ev.target.addEventListener('keydown', function(ev) {
+        if (ev.shiftKey && ev.key == "Enter") {
+            ev.target.editor.recordUndoEntry('Shift+Enter');
+            ev.target.editor.insertHTML('<br>');
+            ev.preventDefault();
+        }
+    });
+});
+````
+
+
+## Original README.md:
+
 # Trix
 ### A Rich Text Editor for Everyday Writing
 
